@@ -1,4 +1,7 @@
 # Copyright 2020 Tianyi Xu tyx@bu.edu
+# Copyright 2020 Buyuan Lin buruce@bu.edu
+# Copyright 2020 Yuhan Hu yuhann@bu.edu
+
 
 import sys
 import numpy as np
@@ -102,7 +105,7 @@ class Puzzle:
                 if self.hints[hint_index][len(prev_string)] == next_char:
                     return 1
                 else: return 0
-            else: return 1s
+            else: return 1
         else:
             return 1
 
@@ -128,7 +131,7 @@ def make_dict(length, word, dictionary):
 
 
 def main():
-    small_word_list = open("/home/ece-student/course/final/very_small_word_list.txt", 'r').read().split()
+    small_word_list = open(sys.argv[1], 'r').read().split()
     # large_word_list = open(sys.argv[2]).read().split()    
     small_dict =  {}
     for word in small_word_list:
