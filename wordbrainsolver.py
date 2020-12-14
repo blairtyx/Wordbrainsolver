@@ -42,7 +42,7 @@ class Puzzle:
 
         for i, row_content in enumerate(self.word_list):
             for j, char in enumerate(row_content):
-                # start searching with each char as the starting. 
+                # start searching with each char as the leading character. 
                 if char in dictionary and self.dirty_bit[i][j] == 0:
                     dirty_bit = self.dirty_bit
                     dirty_bit[i][j] = 1
@@ -56,15 +56,15 @@ class Puzzle:
     def append_char(self,i, j, hint_index, dictionary, dirty_bit, prev_string):
         print(prev_string)
         if len(prev_string) == self.hints_length[hint_index]:
-            if 'end' in dictionary:
-                print("found")
+            if 'end' in dictionary: # find a string and also in dictionary, word found!
+                print("word found!!!\n")
                 self.result[hint_index] = prev_string
                 self.dirty_bit = dirty_bit
                 self.found = 1
                 return 1
-            else: 
-                print("case 2") # found ab, but no ab in dict. needs to pick the next start
-                return 0
+            else: # find a string with right length, but not in dictionary
+                print("find a string with right length, but not in dictionary")  
+                return 2 # roll back one bit
         else:
             for a, b in Puzzle.search_grid:
                 if 0 <= i+a and i+a <= self.degree-1 and 0<= j+b and j+b <= self.degree-1: 
@@ -74,44 +74,45 @@ class Puzzle:
                 else: continue
                 print('\n       next char: ', next_char)
                 print(dictionary)
-                if self.match_hint(hint_index, prev_string, next_char):
-                    if next_char in dictionary:
-                        dirty_bit[i+a][j+b] = 1
+                if self.match_hint(hint_index, prev_string, next_char): # match hint
+                    if next_char in dictionary: # match dictionary
+                        dirty_bit[i+a][j+b] = 1 # mark as dirty
                         print(self.dirty_bit)
-                        next_string = prev_string + next_char
+                        next_string = prev_string + next_char # append to string
                         next_itr = self.append_char(i+a, j+b, hint_index,
                                         dictionary[next_char],
-                                        dirty_bit, next_string)
-                        if next_itr == 0: 
+                                        dirty_bit, next_string) # find next char
+                        if next_itr == 0: # 
                             print("This char not in hint or sub_dictionary")
                             dirty_bit[i+a][j+b] = 0
                         elif next_itr == 1: 
                             print("Hit in hint or sub_dict")
                             return 1
-                    else: continue
-                else: continue
-            
-            else: 
-                print(" case 1 ")
-                return 0
+                    else: # in hint but not in dictionary, find next char
+                        print("In hint but not in dictionary, find next char")
+                        continue
+                else: # not match with the hint, find next char
+                    print(" Not match with the hints, find next char")
+                    continue
 
         
 
     def match_hint(self, hint_index, prev_string, next_char):
-
         # if hints for this index is not empty
-        if self.hints[hint_index]:
-            if len(prev_string) in self.hints[hint_index]:
-                if self.hints[hint_index][len(prev_string)] == next_char:
-                    return 1
-                else: return 0
-            else: return 1
-        else:
-            return 1
-
-
+        # and there is a hint char for this index
+        if self.hints[hint_index] and len(prev_string) in self.hints[hint_index]:
+            if self.hints[hint_index][len(prev_string)] == next_char: # if match
+                return 1
+            else: return 0
+        else: return 1
 
     def update_word_list(self):
+        for i, row_content in self.dirty_bit:
+            for j, key in row_content:
+                if key == 1: # key is used
+                    self.word_list[i].pop(j) # pop the key
+                    self.word_list[i].append('0') # append 0 to the end
+                else: continue
         pass
 
 
