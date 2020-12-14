@@ -10,6 +10,7 @@ import numpy as np
 class Puzzle:
     search_grid = [(-1,-1), (-1,0), (-1,1), (0,-1), (0,1), (1,-1), (1,0), (1,1)]
     def __init__(self, word_list, solution_temp):
+        # Constructor
         self.found = 0
         self.result = ['0']* len(solution_temp)
         self.degree = len(word_list[0])
@@ -38,20 +39,19 @@ class Puzzle:
     
     def search_word(self, hint_index, dictionary):
         print("hint_index ", hint_index)
-        quit_flag = 0
-        while quit_flag == 0:
-            for i, row_content in enumerate(self.word_list):
-                for j, char in enumerate(row_content):
-                    # start searching with each char as the starting. 
-                    if char in dictionary and self.dirty_bit[i][j] == 0:
-                        dirty_bit = self.dirty_bit
-                        dirty_bit[i][j] = 1
-                        print("\n try append char ", char)
-                        tmp = self.append_char(i,j,hint_index, dictionary[char], dirty_bit, char)
-                        print("we are back to search word", tmp)
-                        print("dirty_bits: ", self.dirty_bit)
-                        print("end of this search_word \n")
-                        return 1
+
+        for i, row_content in enumerate(self.word_list):
+            for j, char in enumerate(row_content):
+                # start searching with each char as the starting. 
+                if char in dictionary and self.dirty_bit[i][j] == 0:
+                    dirty_bit = self.dirty_bit
+                    dirty_bit[i][j] = 1
+                    print("\n try append char ", char)
+                    tmp = self.append_char(i,j,hint_index, dictionary[char], dirty_bit, char)
+                    print("we are back to search word", tmp)
+                    print("dirty_bits: ", self.dirty_bit)
+                    print("end of this search_word \n")
+                    return 1
     
     def append_char(self,i, j, hint_index, dictionary, dirty_bit, prev_string):
         print(prev_string)
@@ -83,10 +83,10 @@ class Puzzle:
                                         dictionary[next_char],
                                         dirty_bit, next_string)
                         if next_itr == 0: 
-                            print("case 3")
+                            print("This char not in hint or sub_dictionary")
                             dirty_bit[i+a][j+b] = 0
                         elif next_itr == 1: 
-                            print("case 4")
+                            print("Hit in hint or sub_dict")
                             return 1
                     else: continue
                 else: continue
@@ -113,13 +113,6 @@ class Puzzle:
 
     def update_word_list(self):
         pass
-
-                    
-
-                
-                
-
-
 
 
 def make_dict(length, word, dictionary):
