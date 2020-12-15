@@ -3,7 +3,7 @@
 # Copyright 2020 Yuhan Hu yuhann@bu.edu
 
 
-import sys
+from sys import argv
 import numpy as np
 
 
@@ -40,7 +40,8 @@ class Puzzle:
         for i, row_content in enumerate(self.word_list):
             for j, char in enumerate(row_content):
                 # start searching with each char as the leading char. 
-                if char in dictionary and self.dirty_bit[i][j] == 0:
+                if (char in dictionary and self.dirty_bit[i][j] == 0 
+                    and self.match_hint(hint_index, '', self.word_list[i][j])):
                     dirty_bit = self.dirty_bit
                     dirty_bit[i][j] = 1 # mark as dirty for the leading char
 
@@ -130,8 +131,8 @@ def find_word_list(itr, stop_num, input_result_list, dictionary, output_result_l
 
         
 def main():
-    small_word_list = open(sys.argv[1], 'r').read().split()
-    large_word_list = open(sys.argv[2], 'r').read().split()
+    small_word_list = open(argv[1], 'r').read().split()
+    large_word_list = open(argv[2], 'r').read().split()
     
     # small dictionary
     small_dict =  {}
@@ -200,10 +201,8 @@ def main():
                     tmp.reverse()
                     puzzle.append(tmp)
             else: exit(0)
-        print('solution_temp:', solution_temp, " type: ", type(solution_temp))
         puzzle_list = [list(k) for k in puzzle]
         word_list = np.flip(np.array(puzzle_list).T)
-        print(word_list)
         hints_list = []
         hints_length = []
         for j, hint in enumerate(solution_temp):
@@ -214,8 +213,6 @@ def main():
             hints_length.append(len(hint))
         Puzzle.hints_length = hints_length
         Puzzle.hints_list = hints_list
-        print(Puzzle.hints_length)
-        print(Puzzle.hints_list)
 
         degree = len(puzzle_list[0])
         stop_num = len(hints_length)
@@ -229,10 +226,12 @@ def main():
         
         small_result = []
         [small_result.append(x) for x in universal_list if x not in small_result]
-        print(small_result)
         if small_result:
+            small_result.sort()
             for content in small_result:
-                print(content)
+                for k in content:
+                    print(k, end=' ')
+                print()
             print('.')
         else: 
             large_result = []
@@ -240,8 +239,11 @@ def main():
             find_word_list(1, stop_num, first_result_list, large_dict, universal_list)
             [large_result.append(x) for x in universal_list if x not in large_result]
             if large_result:
+                large_result.sort()
                 for content in large_result:
-                    print(content)
+                    for k in content:
+                        print(k, end=' ')
+                    print()
                 print('.')
             else:
                 print('.')
