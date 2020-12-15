@@ -189,7 +189,7 @@ def main():
         first_puzzle.search_word(0, small_dict, first_result_list)
         universal_list = []
         find_word_list(1, stop_num, first_result_list,
-            small_dict, universal_list)
+                    small_dict, universal_list)
 
         small_result = []
         [small_result.append(x) for x in
