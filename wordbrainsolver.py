@@ -37,9 +37,6 @@ class Puzzle:
         pass
     
     def search_word(self, hint_index, dictionary,  result_list):
-        # print("////////////////hint_index ", hint_index)
-        # print("////////////////dirty_bit ", self.dirty_bit)
-        # print("////////////////word_list ", self.word_list)
         for i, row_content in enumerate(self.word_list):
             for j, char in enumerate(row_content):
                 # start searching with each char as the leading char. 
@@ -47,32 +44,21 @@ class Puzzle:
                     dirty_bit = self.dirty_bit
                     dirty_bit[i][j] = 1 # mark as dirty for the leading char
 
-                    # print("\n################# try append char #################   ", char)
                     # find out all possible words with this starting char
                     self.append_char(i,j,hint_index, dictionary[char],dirty_bit, char, result_list)
                     
-                    # print("Finish searching of char: ", char, " at Position: ",i, " ", j)
                     dirty_bit[i][j] = 0
-                    # print("     dirty_bits: ", self.dirty_bit, "\n")
-                    # print("     word_list: ", self.word_list)
-                    # print("################# end of this search_word iteration #################\n")
     
     def append_char(self,i, j, hint_index, dictionary,dirty_bit, prev_string, result_list):
-        # print("     prev_string is: ", prev_string)
         if len(prev_string) == Puzzle.hints_length[hint_index]: 
             if 'end' in dictionary: # find a string and also in dictionary, word found!
-                # print("word found!!!\n")
-                # print("hint_index is: ", hint_index)
 
                 # update prev_str_list
                 self.prev_str_list.append(prev_string)
 
                 dirty_bit_ins = self.dirty_bit.copy()
-                # print(dirty_bit_ins)
                 word_list_ins = self.word_list.copy()
-                # print(word_list_ins)
                 prev_str_list_ins = self.prev_str_list.copy()
-                
                 
                 result_list.append([dirty_bit_ins, word_list_ins, prev_str_list_ins])
                 return 1 # roll back one bit and pop prev_string
@@ -85,13 +71,9 @@ class Puzzle:
                         next_char = self.word_list[i+a][j+b] # update with the new char
                     else: continue
                 else: continue
-                # print('\n       next char: ', next_char)
-                # print(self.word_list)
-                # print(self.dirty_bit)
                 if self.match_hint(hint_index, prev_string, next_char): # match hint
                     if next_char in dictionary: # match dictionary
                         dirty_bit[i+a][j+b] = 1 # mark as dirty
-                        # print(self.dirty_bit)
                         next_string = prev_string + next_char # append to string
                         tmp = self.append_char(i+a, j+b, hint_index,
                                         dictionary[next_char],
@@ -100,10 +82,8 @@ class Puzzle:
                         if tmp == 1:
                             self.prev_str_list.pop()
                     else: # in hint but not in dictionary, find next char
-                        # print("In hint but not in dictionary, find next char")
                         continue
                 else: # not match with the hint, find next char
-                    # print(" Not match with the hints_list, find next char")
                     continue
             return 0 # end of search_grid, no other possible next_char, end this iteration
 
@@ -120,13 +100,11 @@ class Puzzle:
 
     def update_word_list(self):
         delete_list = [[] for _ in range(self.degree)]
-        # print(delete_list)
         for i, row_content in enumerate(self.dirty_bit):
             for j, key in enumerate(row_content):
                 if key == 1: # key is dirty
                     delete_list[i].append(j)
                 else: continue
-        # print(delete_list)
         for k,m in enumerate(delete_list):
             if len(m) > 0:
                 self.word_list[k] = np.append(np.delete(self.word_list[k], m), ['0'] * len(m))
@@ -139,7 +117,7 @@ def make_dict(length, word, dictionary):
     else:
         make_dict(length + 1, word, dictionary.setdefault(word[length], {}))
 
-def find_word_list(itr, stop_num, input_result_list, dictionary, output_result_list, degree):
+def find_word_list(itr, stop_num, input_result_list, dictionary, output_result_list):
     if input_result_list: # not empty
         for content in input_result_list:
             result_list = []
@@ -148,7 +126,7 @@ def find_word_list(itr, stop_num, input_result_list, dictionary, output_result_l
             else:
                 next_puzzle = Puzzle(content[1], content[0], content[2])
                 next_puzzle.search_word(itr,dictionary, result_list)
-                find_word_list(itr+1, stop_num, result_list, dictionary, output_result_list, degree)
+                find_word_list(itr+1, stop_num, result_list, dictionary, output_result_list)
 
         
 def main():
@@ -163,67 +141,111 @@ def main():
     large_dict = {}
     for word in large_word_list:
         make_dict(0, word, large_dict)
-    ############################## test code ##############################
-    # test input matrix
-    input_matrix = ["yson", 'elnn','hnca','olab']
-    input_list = [list(k) for k in input_matrix]
-    print(input_list)
-    for l in input_list: l.reverse()
-    print(input_list)
-    word_list = np.flip(np.array(input_list).T) 
-    print(word_list)
-    # test solution template    
-    hints_list = []
-    hints_length = []
-    solution_temp = ['*****', '*****', '******']
-    for j, hint in enumerate(solution_temp):
+    # ############################## test code ##############################
+    # # test input matrix
+    # input_matrix = ["yson", 'elnn','hnca','olab']
+    # input_list = [list(k) for k in input_matrix]
+    # print(input_list)
+    # for l in input_list: l.reverse()
+    # print(input_list)
+    # word_list = np.flip(np.array(input_list).T) 
+    # print(word_list)
+    # # test solution template    
+    # hints_list = []
+    # hints_length = []
+    # solution_temp = ['*****', '*****', '******']
+    # for j, hint in enumerate(solution_temp):
+    #         hints_list.append({})
+    #         for i, char in enumerate(hint):
+    #             if char != '*':
+    #                 hints_list[j][i] = char
+    #         hints_length.append(len(hint))
+
+    # Puzzle.hints_length = hints_length
+    # Puzzle.hints_list = hints_list
+    # # test dirty_bit, start with all zero
+    # degree = len(input_matrix[0])
+    # dirty_bit = np.zeros((degree, degree), int)
+
+    # # construct the fist Puzzle object
+    # puzzle_test = Puzzle(word_list, dirty_bit, [])
+
+    # # start search word with hint_index = 0, 
+    # #   referencing small dictionary, 
+    # #   unified result_list
+    # first_result_list = []
+
+    # puzzle_test.search_word(0, small_dict, first_result_list)
+    
+    # universal_list = []
+    # # print(first_result_list)
+    # find_word_list(1, len(hints_length), first_result_list, small_dict, universal_list)
+    
+    # final_result = []
+    # [final_result.append(x) for x in universal_list if x not in final_result]
+    # print(final_result)
+
+
+    while True:
+        puzzle = []
+        while True:
+            try: line = input()
+            except EOFError: exit(0)
+            if line:
+                if '*' in line:
+                    solution_temp= line.split()                    
+                    break
+                else: 
+                    tmp = list(line)
+                    tmp.reverse()
+                    puzzle.append(tmp)
+            else: exit(0)
+        print('solution_temp:', solution_temp, " type: ", type(solution_temp))
+        puzzle_list = [list(k) for k in puzzle]
+        word_list = np.flip(np.array(puzzle_list).T)
+        print(word_list)
+        hints_list = []
+        hints_length = []
+        for j, hint in enumerate(solution_temp):
             hints_list.append({})
             for i, char in enumerate(hint):
                 if char != '*':
                     hints_list[j][i] = char
             hints_length.append(len(hint))
+        Puzzle.hints_length = hints_length
+        Puzzle.hints_list = hints_list
+        print(Puzzle.hints_length)
+        print(Puzzle.hints_list)
 
-    Puzzle.hints_length = hints_length
-    Puzzle.hints_list = hints_list
-    # test dirty_bit, start with all zero
-    degree = len(input_matrix[0])
-    dirty_bit = np.zeros((degree, degree), int)
+        degree = len(puzzle_list[0])
+        stop_num = len(hints_length)
+        dirty_bit = np.zeros((degree,degree),int)
+        first_puzzle = Puzzle(word_list, dirty_bit, [])
 
-    # construct the fist Puzzle object
-    puzzle_test = Puzzle(word_list, dirty_bit, [])
-
-    # start search word with hint_index = 0, 
-    #   referencing small dictionary, 
-    #   unified result_list
-    first_result_list = []
-
-    puzzle_test.search_word(0, small_dict, first_result_list)
-    
-    universal_list = []
-    # print(first_result_list)
-    find_word_list(1, len(hints_length), first_result_list, small_dict, universal_list, degree)
-    
-    final_result = []
-    [final_result.append(x) for x in universal_list if x not in final_result]
-    print(final_result)
-
-
-    # while True:
-    #     puzzle = []
-    #     while True:
-    #         try: line = input()
-    #         except EOFError: exit(0)
-    #         if line:
-    #             if '*' in line:
-    #                 solution_temp= line.split()                    
-    #                 break
-    #             else: 
-    #                 tmp = list(line)
-    #                 tmp.reverse()
-    #                 puzzle.append(tmp)
-    #         else: exit(0)
-    #     origin_word_list = Puzzle(puzzle, solution_temp)
-    #     origin_word_list.search_word(0, small_dict)
+        first_result_list = []
+        first_puzzle.search_word(0, small_dict, first_result_list)
+        universal_list = []
+        find_word_list(1, stop_num, first_result_list, small_dict, universal_list)
+        
+        small_result = []
+        [small_result.append(x) for x in universal_list if x not in small_result]
+        print(small_result)
+        if small_result:
+            for content in small_result:
+                print(content)
+            print('.')
+        else: 
+            large_result = []
+            first_puzzle.search_word(0, large_dict, first_result_list)
+            find_word_list(1, stop_num, first_result_list, large_dict, universal_list)
+            [large_result.append(x) for x in universal_list if x not in large_result]
+            if large_result:
+                for content in large_result:
+                    print(content)
+                print('.')
+            else:
+                print('.')
+        
 
 
 
