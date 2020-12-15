@@ -6,3 +6,7 @@ wordbrainsolver_test.py
 output_2.txt
 output_opt.txt
 output_prof.txt
+output_prof_y.txt
+output_prof_v.txt
+output_main_prof.txt
+wordbrainsolver.py.bkp

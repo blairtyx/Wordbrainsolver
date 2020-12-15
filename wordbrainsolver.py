@@ -15,14 +15,13 @@ class Puzzle:
                 (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
     hints_length = []
     hints_list = []
-    def __init__(self, word_list, dirty_bit, prev_str_list):
+    def __init__(self, word_list, dirty_bit, prev_str_collect):
         # Constructor
-        # start = time.time()
         # size of the input string
         self.degree = len(word_list[0])
 
         # store the previous iterations' string list
-        self.prev_str_list = prev_str_list
+        self.prev_str_collect = prev_str_collect
 
         # initiate the using record (dirty_bit)
         self.dirty_bit = dirty_bit
@@ -32,8 +31,6 @@ class Puzzle:
 
         # update the Puzzle if possible
         self.update_word_list()
-        # end = time.time()
-        # print("Constructe time: ", end-start)
         pass
 
     def search_word(self, hint_index, dictionary,  result_list):
@@ -43,7 +40,6 @@ class Puzzle:
                 # start searching with each char as the leading char.
                 if (char in dictionary and self.dirty_bit[i][j] == 0
                         and self.match_hint(hint_index, '', self.word_list[i][j])):
-                    # print("in search_word, checking: " , self.word_list[i][j])
                     dirty_bit = self.dirty_bit
                     dirty_bit[i][j] = 1  # mark as dirty for the leading char
 
@@ -59,15 +55,16 @@ class Puzzle:
             if 'end' in dictionary: # find a string and also in dictionary, word found!
 
                 # update prev_str_list
-                self.prev_str_list.append(prev_string)
 
                 dirty_bit_ins = self.dirty_bit.copy()
                 word_list_ins = self.word_list.copy()
-                prev_str_list_ins = self.prev_str_list.copy()
+                if self.prev_str_collect:
+                    prev_str_list_ins = ' '.join([self.prev_str_collect, prev_string])
+                else:
+                    prev_str_list_ins = prev_string
 
                 result_list.append([dirty_bit_ins, word_list_ins, prev_str_list_ins])
-                return 1 # roll back one bit and pop prev_string
-
+                
         else: # need more chars to append to
             for a, b in Puzzle.search_grid:
                 # find next_char based on search_grid
@@ -80,17 +77,15 @@ class Puzzle:
                     if next_char in dictionary: # match dictionary
                         dirty_bit[i+a][j+b] = 1 # mark as dirty
                         next_string = prev_string + next_char # append to string
-                        tmp = self.append_char(i+a, j+b, hint_index,
+                        self.append_char(i+a, j+b, hint_index,
                                         dictionary[next_char],
                                         dirty_bit, next_string, result_list) # find next char
                         dirty_bit[i+a][j+b] = 0 # mark back to clean
-                        if tmp == 1:
-                            self.prev_str_list.pop()
                     else:  # in hint but not in dictionary, find next char
                         continue
                 else:  # not match with the hint, find next char
                     continue
-            return 0  # end of search_grid, no other possible next_char, end this iteration
+            
 
 
 
@@ -99,17 +94,13 @@ class Puzzle:
         # and there is a hint char for this index
         if Puzzle.hints_list[hint_index] and len(prev_string) in Puzzle.hints_list[hint_index]:
             if Puzzle.hints_list[hint_index][len(prev_string)] == next_char:  # if match
-                # print(" match hint ")
                 return 1
             else:
-                # print(" mismatch hint, return to last level")
                 return 0
         else:
-            # print(" empty hint, continue ")
             return 1
 
     def update_word_list(self):
-        # start = time.time()
         delete_list = [[] for _ in range(self.degree)]
         for i, row_content in enumerate(self.dirty_bit):
             for j, key in enumerate(row_content):
@@ -123,8 +114,7 @@ class Puzzle:
                                         ['0'] * len(m))
                 self.dirty_bit[k] = np.append(np.delete(self.dirty_bit[k], m),
                                         [1 ] * (len(m)))
-        # end = time.time()
-        # print("update_word_list_time", end-start)
+
 
 def make_dict(length, word, dictionary):
     """Make dictionary tree based on list"""
@@ -135,38 +125,25 @@ def make_dict(length, word, dictionary):
 
 
 def find_word_list(itr, stop_num, input_result_list,
-            dictionary, output_result_list):
-    # print("Input not empty? ",bool(input_result_list))
-    # print("Input list is:", input_result_list)
+            dictionary, output_result_set):
     if input_result_list:  # not empty
         for content in input_result_list:
-            # print(itr, " start searching based on:\n", content)
             result_list = []
             if itr == stop_num:
-                # print("itr == stop num")
-                if content[2] not in output_result_list:
-                    # print(" no duplicate item, append")
-                    output_result_list.append(content[2])
+                if content[2] not in output_result_set:
+                    output_result_set.add(content[2])
             else:
                 next_puzzle = Puzzle(content[1], content[0], content[2])
                 next_puzzle.search_word(itr, dictionary, result_list)
-                # print(itr, " searching result_list\n", result_list)
                 find_word_list(itr+1, stop_num, result_list,
-                            dictionary, output_result_list)
-            # print(itr, " finished searching based on:\n", content)
-            # print(itr, " searching result_list\n", result_list)
-    # else: 
-        # print(itr, " empty list, back to last level")
-    # print('\n\n')
+                            dictionary, output_result_set)
+
 
 
 
 def main():
     small_word_list = open(argv[1], 'r').read().split()
     large_word_list = open(argv[2], 'r').read().split()
-
-    # dict_start = time.time()
-    # small dictionary
     small_dict = {}
     for word in small_word_list:
         make_dict(0, word, small_dict)
@@ -175,8 +152,6 @@ def main():
     for word in large_word_list:
         make_dict(0, word, large_dict)
 
-    # dict_end = time.time()
-    # print("construct dictionary time: ", dict_end - dict_start)
     while True:
         puzzle = []
         while True:
@@ -195,8 +170,6 @@ def main():
             else: 
                 exit(0)
 
-        # main_start_time = time.time()
-
         puzzle_list = [list(k) for k in puzzle]
         word_list = np.flip(np.array(puzzle_list).T)
         hints_list = []
@@ -213,44 +186,29 @@ def main():
         degree = len(puzzle_list[0])
         stop_num = len(hints_length)
         dirty_bit = np.zeros((degree, degree), int)
-        first_puzzle = Puzzle(word_list, dirty_bit, [])
+        first_puzzle = Puzzle(word_list, dirty_bit, '')
 
         first_result_list = []
         first_puzzle.search_word(0, small_dict, first_result_list)
-        # print("first_result_list: \n",first_result_list, "\n")
-        universal_list = []
+        final_set = set()
         find_word_list(1, stop_num, first_result_list,
-            small_dict, universal_list)
-        # print("universal_list: \n", universal_list, '\n') 
-        small_result = universal_list
-        # [small_result.append(x) for x in
-        #     universal_list if x not in small_result]
-        if small_result:
-            small_result.sort()
-            for content in small_result:
-                for k in content:
-                    print(k, end=' ')
-                print()
+            small_dict, final_set)
+        if final_set:
+            final_set = sorted(final_set)
+            for content in final_set:
+                print(content)
             print('.')
         else:
-            
-            large_result = universal_list
             first_puzzle.search_word(0, large_dict, first_result_list)
             find_word_list(1, stop_num, first_result_list,
-                large_dict, universal_list)
-            # [large_result.append(x) for x in
-            #     universal_list if x not in large_result]
-            if large_result:
-                large_result.sort()
-                for content in large_result:
-                    for k in content:
-                        print(k, end=' ')
-                    print()
+                large_dict, final_set)
+            if final_set:
+                final_set = sorted(final_set)
+                for content in final_set:
+                    print(content)
                 print('.')
             else:
                 print('.')
-        # main_end_time = time.time()
-        # print("total time: ", main_end_time - main_start_time)
 
 if __name__ == "__main__":
     main()
