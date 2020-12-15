@@ -3,3 +3,6 @@ blair_test.py
 .vscode/launch.json
 output.txt
 wordbrainsolver_test.py
+output_2.txt
+output_opt.txt
+output_prof.txt
