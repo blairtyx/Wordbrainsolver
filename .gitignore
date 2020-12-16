@@ -10,3 +10,7 @@ output_prof_y.txt
 output_prof_v.txt
 output_main_prof.txt
 wordbrainsolver.py.bkp
+wordbrainsolver_blair.cpp
+.vscode/c_cpp_properties.json
+test_blair
+wordbrainsolver
